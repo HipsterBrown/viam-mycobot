@@ -4,6 +4,13 @@
   "visibility": "public",
   "url": "https://github.com/hipsterbrown/viam-mycobot",
   "description": "Modular arm component: arm",
+  "build": {
+    "build": "mise run package",
+    "path": "module.tar.gz",
+    "arch": [
+      "linux/arm64"
+    ]
+  },
   "models": [
     {
       "api": "rdk:component:arm",

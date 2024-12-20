@@ -170,6 +170,27 @@ wheels = [
 ]
 
 [[package]]
+name = "pymycobot"
+version = "3.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyserial" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d5/43/48d60ad4724f47a969051c86bb88848f9f9d7e8827c7b7dc0b155a380a7c/pymycobot-3.6.1.tar.gz", hash = "sha256:3419b69cb10d20797f32852e0341334d6bd4fbbfdc3d0fc52a262da757e4c692", size = 127748 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/34/16/5b7b1ab208fc1acd5b26255885a4196f782e4809d03c96cebac2399a4fa4/pymycobot-3.6.1-py3-none-any.whl", hash = "sha256:60fc40f6aab7e9064ade930c792a6b24437f573c8a89294f9b41085157413bca", size = 176868 },
+]
+
+[[package]]
+name = "pyserial"
+version = "3.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082/pyserial-3.5.tar.gz", hash = "sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb", size = 159125 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/bc/587a445451b253b285629263eb51c2d8e9bcea4fc97826266d186f96f558/pyserial-3.5-py2.py3-none-any.whl", hash = "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0", size = 90585 },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.12.2"
 source = { registry = "https://pypi.org/simple" }
@@ -183,12 +204,14 @@ name = "viam-mycobot"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "pymycobot" },
     { name = "typing-extensions" },
     { name = "viam-sdk" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "pymycobot", specifier = "==3.6.1" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
     { name = "viam-sdk", specifier = "==0.36.0" },
 ]
