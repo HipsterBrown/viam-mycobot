@@ -1,0 +1,15 @@
+{
+  "$schema": "https://dl.viam.dev/module.schema.json",
+  "module_id": "hipsterbrown:mycobot",
+  "visibility": "public",
+  "url": "https://github.com/hipsterbrown/viam-mycobot",
+  "description": "Modular arm component: arm",
+  "models": [
+    {
+      "api": "rdk:component:arm",
+      "model": "hipsterbrown:arm:mycobot280"
+    }
+  ],
+  "entrypoint": "./run.sh",
+  "first_run": "./setup.sh"
+}

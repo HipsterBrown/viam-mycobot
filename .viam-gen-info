@@ -1,0 +1,12 @@
+{
+  "module_name": "mycobot280",
+  "namespace": "hipsterbrown",
+  "language": "python",
+  "resource_type": "component",
+  "resource_subtype": "arm",
+  "model_name": "arm",
+  "enable_cloud_build": false,
+  "initialize_git": false,
+  "generator_version": "0.1.0",
+  "generated_on": "2024-12-20T14:49:07.829733Z"
+}

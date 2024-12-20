@@ -1,0 +1,10 @@
+[project]
+name = "viam-mycobot"
+version = "0.1.0"
+description = "A modular resource for Viam to support the Elephant Robotics myCobot arms"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "typing-extensions>=4.12.2",
+    "viam-sdk==0.36.0",
+]
