@@ -1,6 +1,6 @@
 # `mycobot` module
 
-This [module](https://docs.viam.com/registry/modular-resources/) implements the [`rdk:component:arm` API](https://docs.viam.com/appendix/apis/components/arm/) for the [Elephant Robotics myCobot 280 Pi](https://www.elephantrobotics.com/en/mycobot-280-pi-2023-en/).
+This [module](https://docs.viam.com/registry/modular-resources/) implements the [`rdk:component:arm` API](https://docs.viam.com/appendix/apis/components/arm/) and [`rdk:component:gripper` API](https://docs.viam.com/appendix/apis/components/gripper/) for the [Elephant Robotics myCobot 280 Pi](https://www.elephantrobotics.com/en/mycobot-280-pi-2023-en/).
 
 With this model, you can control a desktop robotic arm that can be used for testing before deploying to an industrial arm, home or office collaboration tasks, or creating a face tracking camera arm.
 
@@ -27,6 +27,30 @@ The following attributes are available for `hipsterbrown:arm:mycobot280` arm com
 ```json
 {
     "default_speed": 50
+}
+```
+
+## Configure your mycobot gripper component
+
+Navigate to the [**CONFIGURE** tab](https://docs.viam.com/configure/) of your [machine](https://docs.viam.com/fleet/machines/) in the [Viam app](https://app.viam.com/).
+[Add `hipsterbrown:mycobot` to your machine](https://docs.viam.com/configure/#components).
+
+### Attributes
+
+The following attributes are available for `hipsterbrown:gripper:mycobot` arm component:
+
+| Name    | Type   | Required?    | Default | Description |
+| ------- | ------ | ------------ | ------- | ----------- |
+| `arm_name` | string | Required | N/A  | The name of the myCobot280 arm component used with gripper |
+| `default_speed` | number (1-100) | Optional | 20  | The default speed to use when moving the joints on the arm set as millimeters per second |
+
+
+### Example configuration
+
+```json
+{
+    "arm_name": "arm-1",
+    "default_speed": 30
 }
 ```
 
