@@ -10,11 +10,18 @@ from viam.proto.common import ResourceName
 from viam.resource.base import ResourceBase
 from viam.resource.easy_resource import EasyResource
 from viam.resource.types import Model, ModelFamily
+from viam.utils import struct_to_dict
 
 from pymycobot.mycobot280 import MyCobot280 as _MyCobot
 from pymycobot import PI_PORT, PI_BAUD
 
+from pydantic import BaseModel, Field
+
 LOGGER = getLogger(__name__)
+
+
+class ArmConfig(BaseModel):
+    default_speed: int = Field(gt=0, le=100, default=20)
 
 
 class MyCobot280(Arm, EasyResource):
@@ -49,6 +56,7 @@ class MyCobot280(Arm, EasyResource):
         Returns:
             Sequence[str]: A list of implicit dependencies
         """
+        ArmConfig(**struct_to_dict(config.attributes))
         return []
 
     def reconfigure(
@@ -60,6 +68,8 @@ class MyCobot280(Arm, EasyResource):
             config (ComponentConfig): The new configuration
             dependencies (Mapping[ResourceName, ResourceBase]): Any dependencies (both implicit and explicit)
         """
+        self.config = ArmConfig(**struct_to_dict(config.attributes))
+
         if self.mycobot is not None:
             LOGGER.info("Resetting connection")
             self.mycobot.stop()
@@ -96,7 +106,9 @@ class MyCobot280(Arm, EasyResource):
             return
 
         self.mycobot.send_coords(
-            [pose.x, pose.y, pose.z, pose.o_x, pose.o_y, pose.o_z], 20, 1
+            [pose.x, pose.y, pose.z, pose.o_x, pose.o_y, pose.o_z],
+            self.config.default_speed,
+            1,
         )
 
     async def move_to_joint_positions(
@@ -113,7 +125,7 @@ class MyCobot280(Arm, EasyResource):
             return
 
         angles = list(positions.values)
-        self.mycobot.send_angles(angles, 20)
+        self.mycobot.send_angles(angles, self.config.default_speed)
 
     async def get_joint_positions(
         self,

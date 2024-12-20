@@ -3,8 +3,9 @@ name = "viam-mycobot"
 version = "0.1.0"
 description = "A modular resource for Viam to support the Elephant Robotics myCobot arms"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.8.1"
 dependencies = [
+    "pydantic>=2.10.4",
     "pymycobot==3.6.1",
     "typing-extensions>=4.12.2",
     "viam-sdk==0.36.0",
