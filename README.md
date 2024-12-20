@@ -15,7 +15,7 @@ Navigate to the [**CONFIGURE** tab](https://docs.viam.com/configure/) of your [m
 
 ### Attributes
 
-The following attributes are available for `hipsterbrown:vision:pi-ai-camera` vision service:
+The following attributes are available for `hipsterbrown:arm:mycobot280` arm component:
 
 | Name    | Type   | Required?    | Default | Description |
 | ------- | ------ | ------------ | ------- | ----------- |
