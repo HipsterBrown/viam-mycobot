@@ -14,6 +14,8 @@ from viam.utils import struct_to_dict
 
 from pydantic import BaseModel, Field
 
+from controller import MyCobotController
+
 LOGGER = getLogger(__name__)
 
 
@@ -23,14 +25,13 @@ class GripperState(Enum):
 
 
 class GripperConfig(BaseModel):
-    arm_name: str
     default_speed: int = Field(gt=0, le=100, default=50)
 
 
 class MyCobot280(Gripper, EasyResource):
     MODEL: ClassVar[Model] = Model(ModelFamily("hipsterbrown", "gripper"), "mycobot")
 
-    mycobot: Arm
+    mycobot: MyCobotController
 
     @classmethod
     def new(
@@ -59,8 +60,8 @@ class MyCobot280(Gripper, EasyResource):
         Returns:
             Sequence[str]: A list of implicit dependencies
         """
-        cfg = GripperConfig(**struct_to_dict(config.attributes))
-        return [cfg.arm_name]
+        GripperConfig(**struct_to_dict(config.attributes))
+        return []
 
     def reconfigure(
         self, config: ComponentConfig, dependencies: Mapping[ResourceName, ResourceBase]
@@ -72,10 +73,7 @@ class MyCobot280(Gripper, EasyResource):
             dependencies (Mapping[ResourceName, ResourceBase]): Any dependencies (both implicit and explicit)
         """
         self.config = GripperConfig(**struct_to_dict(config.attributes))
-
-        self.mycobot = cast(
-            Arm, dependencies[Arm.get_resource_name(self.config.arm_name)]
-        )
+        self.mycobot = MyCobotController()
 
     async def open(
         self,
@@ -84,13 +82,8 @@ class MyCobot280(Gripper, EasyResource):
         timeout: Optional[float] = None,
         **kwargs,
     ):
-        await self.mycobot.do_command(
-            {
-                "set_gripper_state": [
-                    GripperState.OPEN.value,
-                    int(self.config.default_speed),
-                ]
-            }
+        self.mycobot.client.set_gripper_state(
+            GripperState.OPEN.value, int(self.config.default_speed)
         )
 
     async def grab(
@@ -100,15 +93,10 @@ class MyCobot280(Gripper, EasyResource):
         timeout: Optional[float] = None,
         **kwargs,
     ) -> bool:
-        response = await self.mycobot.do_command(
-            {
-                "set_gripper_state": [
-                    GripperState.CLOSED.value,
-                    int(self.config.default_speed),
-                ]
-            }
+        self.mycobot.client.set_gripper_state(
+            GripperState.CLOSED.value, int(self.config.default_speed)
         )
-        return bool(response.get("set_gripper_state", False))
+        return True
 
     async def stop(
         self,
@@ -117,8 +105,8 @@ class MyCobot280(Gripper, EasyResource):
         timeout: Optional[float] = None,
         **kwargs,
     ):
-        pass
+        self.mycobot.client.stop()
 
     async def is_moving(self) -> bool:
-        response = await self.mycobot.do_command({"is_gripper_moving": []})
-        return bool(response.get("is_gripper_moving", False))
+        is_moving = self.mycobot.client.is_moving()
+        return is_moving == 1
