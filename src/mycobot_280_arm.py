@@ -12,14 +12,12 @@ from viam.resource.easy_resource import EasyResource
 from viam.resource.types import Model, ModelFamily
 from viam.utils import struct_to_dict
 
-from pymycobot.mycobot280 import MyCobot280 as _MyCobot
-from pymycobot import PI_PORT, PI_BAUD
-
 from pydantic import BaseModel, Field
 
 from scipy.spatial.transform import Rotation
 
 from controller import MyCobotController
+from utils.spatialmath import SpatialMath
 
 LOGGER = getLogger("myCobot")
 
@@ -76,6 +74,9 @@ class MyCobot280(Arm, EasyResource):
 
         self.mycobot = MyCobotController()
         self.mycobot.client.set_color(0, 0, 255)
+        self.mycobot.client.set_fresh_mode(1)
+        self.mycobot.client.set_end_type(1)
+        self.spatialmath = SpatialMath()
 
         LOGGER.info(
             f"Current system version: {self.mycobot.client.get_system_version()}"
@@ -101,9 +102,16 @@ class MyCobot280(Arm, EasyResource):
         coords = self.mycobot.client.get_coords()
         LOGGER.info(coords)
         x, y, z, rx, ry, rz = coords
-        rotation = Rotation.from_euler("xyz", [rx, ry, rz], degrees=True)
-        o_x, o_y, o_z = rotation.as_rotvec()
-        return Pose(x=x, y=y, z=z, o_x=o_x, o_y=o_y, o_z=o_z)
+        quaternion = self.spatialmath.quaternion_from_euler_angles(
+            self._degrees_to_radians(rz),
+            self._degrees_to_radians(ry),
+            self._degrees_to_radians(rx),
+        )
+        o_vec = self.spatialmath.orientation_vector_from_quaternion(quaternion)
+        o_x, o_y, o_z, theta = self.spatialmath.orientation_vector_get_components(o_vec)
+        self.spatialmath.free_orientation_vector_memory(o_vec)
+        self.spatialmath.free_quaternion_memory(quaternion)
+        return Pose(x=x, y=y, z=z, o_x=o_x, o_y=o_y, o_z=o_z, theta=theta)
 
     async def move_to_position(
         self,
@@ -117,29 +125,42 @@ class MyCobot280(Arm, EasyResource):
             return
 
         current_coords = self.mycobot.client.get_coords()
-        _x, _y, _z, rx, ry, rz = current_coords
-        LOGGER.info(f"Pose Vector: o_x: {pose.o_x}, o_y: {pose.o_y}, o_z: {pose.o_z}")
-        # rx, ry, rz = self._vector_to_angles(pose.o_x, pose.o_y, pose.o_z, pose.theta)
-        rotation = Rotation.from_rotvec([pose.o_x, pose.o_y, pose.o_z])
-        new_rx, new_ry, new_rz = rotation.as_euler("xyz", degrees=True)
-        LOGGER.info(
-            f"Rotational angles: rx: {rx} == {new_rx}, ry: {ry} == {new_ry}, rz: {rz} == {new_rz}"
+        LOGGER.info(f"Current coords: {current_coords}")
+        x, y, z, o_x, o_y, o_z, theta = (
+            pose.x,
+            pose.y,
+            pose.z,
+            pose.o_x,
+            pose.o_y,
+            pose.o_z,
+            pose.theta,
         )
+        o_vec = self.spatialmath.create_orientation_vector(o_x, o_y, o_z, theta)
+        quaternion = self.spatialmath.quaternion_from_orientation_vector(o_vec)
+        real, i, j, k = self.spatialmath.quaternion_get_components(quaternion)
+        LOGGER.info(f"Quat- real: {real}, i: {i}, j: {j}, k: {k}")
+        rotation = Rotation.from_quat([i, j, k, real])
+        LOGGER.info(f"Rotation quat: {rotation.as_quat()}")
+        rx, ry, rz = rotation.as_euler("zyx", degrees=True)
+
         LOGGER.info(
-            f"Spatial coords: {_x} == {pose.x}, {_y} == {pose.y}, {_z} == {pose.z}"
+            f"New coords - x: {x}, y: {y}, z: {z}, rx: {rx}, ry: {ry}, rz: {rz}"
         )
+
+        self.spatialmath.free_orientation_vector_memory(o_vec)
+        self.spatialmath.free_quaternion_memory(quaternion)
 
         self.mycobot.client.send_coords(
             [
-                _x,
-                _y,
-                _z + 25,
+                x,
+                y,
+                z,
                 rx,
                 ry,
                 rz,
             ],
             self.config.default_speed,
-            0,
+            1,
         )
 
     async def move_to_joint_positions(
@@ -162,8 +183,9 @@ class MyCobot280(Arm, EasyResource):
         # joint 4: -145 <=> 145
         # joint 5: -165 <=> 165
         # joint 6: -180 <=> 180
-
+        current = await self.get_joint_positions()
         angles = list(positions.values)
+        LOGGER.info(f"Current angles: {list(current.values)}, New angles: {angles}")
         self.mycobot.client.send_angles(angles, self.config.default_speed)
 
     async def get_joint_positions(
@@ -218,6 +240,9 @@ class MyCobot280(Arm, EasyResource):
         LOGGER.info(f"do_command: {command}")
         result = {}
         for name, args in command.items():
+            LOGGER.info(f"{name}: {args}")
+            if name == "free_mode":
+                result["free_mode"] = self.mycobot.client.set_free_mode(int(args))
             if name == "is_gripper_moving":
                 result["is_gripper_moving"] = (
                     self.mycobot.client.is_gripper_moving() == 1

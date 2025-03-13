@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, ClassVar, Dict, Mapping, Optional, Sequence, cast
+from typing import Any, ClassVar, Dict, Mapping, Optional, Sequence
 
 from typing_extensions import Self
 from viam.components.arm import Arm

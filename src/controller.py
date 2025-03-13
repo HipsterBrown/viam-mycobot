@@ -1,8 +1,11 @@
 from threading import Lock
-from typing import Self
+from typing_extensions import Self
 import weakref
 from pymycobot.mycobot280 import MyCobot280 as _MyCobot
-from pymycobot import PI_PORT, PI_BAUD
+
+# from pymycobot import PI_PORT, PI_BAUD
+PI_PORT = "/dev/ttyAMA0"
+PI_BAUD = 1000000
 
 
 class MyCobotController:

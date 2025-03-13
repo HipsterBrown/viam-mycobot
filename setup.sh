@@ -20,10 +20,9 @@ if [ ! "$(command -v uv)" ]; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
 fi
 
-python -m pip install pymycobot --upgrade
-
 uv venv --system-site-packages $VENV_NAME
 
 echo "Virtualenv found/created. Installing/upgrading Python packages..."
 source $VENV_NAME/bin/activate
+uv pip install pymycobot --upgrade
 uv pip install ./dist/*.whl -q
